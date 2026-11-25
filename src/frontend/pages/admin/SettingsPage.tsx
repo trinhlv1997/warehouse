@@ -23,14 +23,15 @@ export function SettingsPage() {
   const { data: warehouses } = useApiQuery<WarehouseDto[]>(["warehouses"], "/api/warehouses", undefined, can("warehouse.view"));
   const warehouse = warehouses?.[0];
   const [form, setForm] = React.useState({ companyName: "", slowMovingDays: 90, nearCapacityPercent: 80 });
-  const [wh, setWh] = React.useState({ name: "", address: "" });
+  const [wh, setWh] = React.useState({ code: "", name: "", address: "" });
   const [resetOpen, setResetOpen] = React.useState(false);
+  const [codeConfirmOpen, setCodeConfirmOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (settings) setForm({ companyName: settings.companyName, slowMovingDays: settings.slowMovingDays, nearCapacityPercent: settings.nearCapacityPercent });
   }, [settings]);
   React.useEffect(() => {
-    if (warehouse) setWh({ name: warehouse.name, address: warehouse.address ?? "" });
+    if (warehouse) setWh({ code: warehouse.code, name: warehouse.name, address: warehouse.address ?? "" });
   }, [warehouse]);
 
   const save = useApiMutation(
@@ -38,7 +39,13 @@ export function SettingsPage() {
       await api.put("/api/settings", form);
       if (warehouse && can("warehouse.manage")) await api.put(`/api/warehouses/${warehouse.id}`, wh);
     },
-    { invalidate: [["settings"], ["warehouses"], ["zones"], ["warehouse-map"]], success: t("common.saved") },
+    {
+      // a code change rewrites every location code, so refresh everything that shows locations
+      invalidate: [["settings"], ["warehouses"], ["zones"], ["racks"], ["warehouse-map"], ["rack-layout"], ["bins"], ["bin"], ["inventory"], ["lots"], ["alerts"], ["dashboard"]],
+      success: t("common.saved"),
+      onSuccess: () => setCodeConfirmOpen(false),
+      onError: () => setCodeConfirmOpen(false),
+    },
   );
   const reset = useApiMutation(() => api.post("/api/demo/reset"), {
     success: t("settings.resetDone"),
@@ -50,6 +57,8 @@ export function SettingsPage() {
   });
 
   if (isLoading || !settings) return <LoadingBlock rows={6} />;
+  const codeInvalid = !/^[A-Z0-9]{2,10}$/.test(wh.code);
+  const codeChanged = !!warehouse && wh.code !== warehouse.code;
 
   return (
     <div className="space-y-4">
@@ -62,6 +71,9 @@ export function SettingsPage() {
           <CardContent className="space-y-4">
             <Field label={t("settings.companyName")}>
               <Input value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} disabled={!manage} />
+            </Field>
+            <Field label={t("settings.warehouseCode")} error={codeInvalid ? "WAREHOUSE_CODE" : undefined} hint={t("settings.warehouseCodeHint", { example: `${wh.code || "WH001"}-A-A01-L01-B01` })}>
+              <Input value={wh.code} onChange={(e) => setWh({ ...wh, code: e.target.value.toUpperCase() })} disabled={!manage} maxLength={10} className="font-mono uppercase" aria-invalid={codeInvalid} />
             </Field>
             <Field label={t("settings.warehouseName")}>
               <Input value={wh.name} onChange={(e) => setWh({ ...wh, name: e.target.value })} disabled={!manage} />
@@ -79,7 +91,7 @@ export function SettingsPage() {
               </Field>
             </div>
             {manage && (
-              <Button onClick={() => save.mutate(undefined)} loading={save.isPending}>
+              <Button onClick={() => (codeChanged ? setCodeConfirmOpen(true) : save.mutate(undefined))} loading={save.isPending} disabled={codeInvalid || !wh.name.trim()}>
                 {t("common.save")}
               </Button>
             )}
@@ -136,6 +148,15 @@ export function SettingsPage() {
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={codeConfirmOpen}
+        onOpenChange={setCodeConfirmOpen}
+        title={t("settings.codeChangeTitle")}
+        description={t("settings.codeChangeText", { from: warehouse?.code ?? "", to: wh.code })}
+        variant="destructive"
+        loading={save.isPending}
+        onConfirm={() => save.mutate(undefined)}
+      />
       <ConfirmDialog open={resetOpen} onOpenChange={setResetOpen} title={t("settings.resetDemo")} description={t("settings.demoText")} variant="destructive" loading={reset.isPending} onConfirm={() => reset.mutate(undefined)} />
     </div>
   );

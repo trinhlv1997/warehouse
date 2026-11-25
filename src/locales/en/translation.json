@@ -29,7 +29,8 @@
     "slowMoving": "Slow-moving",
     "reports": "Reports",
     "users": "Users",
-    "settings": "Settings"
+    "settings": "Settings",
+    "guide": "User guide"
   },
   "common": {
     "save": "Save",
@@ -203,7 +204,8 @@
     "INTERNAL_ERROR": "System error. Please try again.",
     "network": "Cannot reach the server.",
     "pdf": "Could not create the PDF, please try again.",
-    "excel": "Could not create the Excel file, please try again."
+    "excel": "Could not create the Excel file, please try again.",
+    "ZONE_OVERLAP": "This zone overlaps another zone on the map. Move it or click \"Find a free spot\"."
   },
   "validation": {
     "required": "This field is required",
@@ -217,7 +219,9 @@
     "EXPIRY_BEFORE_MANUFACTURING": "Expiry must be after manufacturing date",
     "SAME_BIN": "Destination must differ from source",
     "SCOPE_REQUIRED": "Select at least one zone or rack",
-    "passwordMin": "Password must be at least 8 characters"
+    "passwordMin": "Password must be at least 8 characters",
+    "WAREHOUSE_CODE": "Warehouse code: letters and digits only, 2–10 characters",
+    "MAP_OUT_OF_BOUNDS": "Zone goes past the right edge of the map (X + Width ≤ 100)"
   },
   "auth": {
     "title": "Sign in",
@@ -297,7 +301,12 @@
     "mapWidth": "Width",
     "mapHeight": "Height",
     "rackCount": "Racks",
-    "binCount": "Bins"
+    "binCount": "Bins",
+    "autoPlace": "Find a free spot",
+    "preview": "Map preview",
+    "overlapWith": "Overlaps {{zone}}",
+    "placementOk": "Valid position, no overlap",
+    "autoHint": "Leave X/Y empty when creating: a free spot is picked automatically"
   },
   "racks": {
     "title": "Racks",
@@ -585,7 +594,11 @@
     "demoText": "Restore all warehouse data to the sample dataset. All changes will be lost.",
     "resetDemo": "Reset demo data",
     "resetDone": "Demo data restored",
-    "preferences": "Preferences"
+    "preferences": "Preferences",
+    "warehouseCode": "Warehouse code",
+    "warehouseCodeHint": "Letters and digits, 2–10 chars; prefix of every location code, e.g. {{example}}",
+    "codeChangeTitle": "Change warehouse code?",
+    "codeChangeText": "The code changes from {{from}} to {{to}}: every location code is updated (e.g. {{from}}-A-A01-L01-B01 → {{to}}-A-A01-L01-B01). Printed labels and previously exported PDF/Excel files keep the old code."
   },
   "notFound": {
     "title": "Page not found",
@@ -626,5 +639,15 @@
     "printedAt": "Exported {{time}} by {{user}} — WMS Pro",
     "page": "Page {{current}}/{{total}}",
     "cancelled": "CANCELLED"
+  },
+  "guide": {
+    "title": "User guide",
+    "subtitle": "How to use every WMS Pro feature, from sign-in to reports",
+    "contents": "Contents",
+    "searchPlaceholder": "Search the guide...",
+    "noMatch": "No matching section",
+    "print": "Print / Save PDF",
+    "jumpTo": "Jump to section...",
+    "vietnameseOnly": "The user guide is currently available in Vietnamese only."
   }
 }

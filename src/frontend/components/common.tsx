@@ -50,7 +50,7 @@ export function KpiCard({ label, value, sub, icon, tone = "primary", onClick }: 
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
           <p className="mt-1.5 text-2xl font-bold tabular-nums">{value}</p>
-          {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
+          {sub && <div className="mt-0.5 text-xs text-muted-foreground">{sub}</div>}
         </div>
         <div className={cn("rounded-lg p-2.5 [&_svg]:size-5", toneClass)}>{icon}</div>
       </div>

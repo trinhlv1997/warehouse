@@ -2,7 +2,7 @@ import { Eye, Pencil, Warehouse } from "lucide-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { ACTIVE_STATUSES } from "@/shared/constants";
-import type { BinDto, RackDto, ZoneDto } from "@/shared/types";
+import type { BinDto, RackDto, WarehouseDto, ZoneDto } from "@/shared/types";
 import { FilterBar, PageHeader, SearchInput } from "../../components/common";
 import { CapacityBadge, StatusBadge, capacityTone } from "../../components/StatusBadge";
 import { Button } from "../../components/ui/button";
@@ -80,6 +80,7 @@ export function BinsPage() {
   React.useEffect(() => setPage(1), [debounced, zoneId, rackId, occupancy, status]);
 
   const { data: zones = [] } = useApiQuery<ZoneDto[]>(["zones"], "/api/zones");
+  const { data: warehouses } = useApiQuery<WarehouseDto[]>(["warehouses"], "/api/warehouses");
   const { data: racks = [] } = useApiQuery<RackDto[]>(["racks"], "/api/racks", { zoneId }, !!zoneId);
   const { data, isLoading } = usePagedQuery<BinRow>(["bins"], "/api/bins", { search: debounced, zoneId, rackId, occupancy, status, page, pageSize: 25 });
   const [editing, setEditing] = React.useState<BinRow | null>(null);
@@ -90,7 +91,7 @@ export function BinsPage() {
       <PageHeader title={t("bins.title")} subtitle={t("bins.subtitle")} icon={<Warehouse />} />
       <Card>
         <FilterBar>
-          <SearchInput value={search} onChange={setSearch} placeholder="WH001-A-A01..." />
+          <SearchInput value={search} onChange={setSearch} placeholder={`${warehouses?.[0]?.code ?? ""}-A-A01...`} />
           <Select
             value={zoneId}
             onChange={(e) => {

@@ -3,7 +3,8 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import type { CapacityStatus } from "@/shared/constants";
-import type { BinDetailDto, LevelDto, LocationSearchResultDto, RackDto, ZoneDto } from "@/shared/types";
+import { MAP_WIDTH, mapHeight } from "@/shared/mapLayout";
+import type { BinDetailDto, LevelDto, LocationSearchResultDto, RackDto, WarehouseDto, ZoneDto } from "@/shared/types";
 import { PageHeader, SearchInput } from "../../components/common";
 import { CAPACITY_STYLE, CapacityBadge, ExpiryBadge, StatusBadge, capacityTone } from "../../components/StatusBadge";
 import { Badge } from "../../components/ui/badge";
@@ -126,8 +127,10 @@ export function BinDetailDialog({ binId, onClose }: { binId: string | null; onCl
 
 function ZoneMap({ zones, selectedZone, highlight, onSelect }: { zones: MapZone[]; selectedZone: string | null; highlight: Set<string>; onSelect: (id: string) => void }) {
   const { t } = useTranslation();
+  // the floor plan grows downwards when zones are added below the original 100 x 60 layout
+  const height = mapHeight(zones) + 2;
   return (
-    <div className="relative w-full overflow-hidden rounded-lg border-2 border-slate-300 bg-[repeating-linear-gradient(0deg,#f8fafc,#f8fafc_19px,#eef2f7_20px),repeating-linear-gradient(90deg,#f8fafc,#f8fafc_19px,#eef2f7_20px)]" style={{ aspectRatio: "100 / 62" }}>
+    <div className="relative w-full overflow-hidden rounded-lg border-2 border-slate-300 bg-[repeating-linear-gradient(0deg,#f8fafc,#f8fafc_19px,#eef2f7_20px),repeating-linear-gradient(90deg,#f8fafc,#f8fafc_19px,#eef2f7_20px)]" style={{ aspectRatio: `${MAP_WIDTH} / ${height}` }}>
       {zones.map((z) => {
         const style = CAPACITY_STYLE[z.capacityStatus];
         const isSelected = z.id === selectedZone;
@@ -142,7 +145,7 @@ function ZoneMap({ zones, selectedZone, highlight, onSelect }: { zones: MapZone[
               isSelected && "ring-4 ring-primary/40",
               highlight.has(z.id) && "animate-pulse ring-4 ring-primary",
             )}
-            style={{ left: `${z.mapX}%`, top: `${(z.mapY / 62) * 100}%`, width: `${z.mapWidth}%`, height: `${(z.mapHeight / 62) * 100}%` }}
+            style={{ left: `${(z.mapX / MAP_WIDTH) * 100}%`, top: `${(z.mapY / height) * 100}%`, width: `${(z.mapWidth / MAP_WIDTH) * 100}%`, height: `${(z.mapHeight / height) * 100}%` }}
           >
             <div className="flex items-start justify-between gap-1">
               <span className={cn("text-[11px] font-bold leading-tight sm:text-sm", style.text)}>
@@ -222,6 +225,8 @@ export function WarehouseMapPage() {
   const debounced = useDebounced(search.trim(), 350);
 
   const { data, isLoading } = useApiQuery<{ zones: MapZone[] }>(["warehouse-map"], "/api/warehouse-map");
+  const { data: warehouses } = useApiQuery<WarehouseDto[]>(["warehouses"], "/api/warehouses");
+  const warehouse = warehouses?.[0];
   const { data: results = [] } = useApiQuery<LocationSearchResultDto[]>(["location-search", debounced], "/api/inventory/locations", { search: debounced }, debounced.length >= 2);
 
   const highlight = React.useMemo(() => new Set(results.flatMap((r) => [r.zoneId, r.rackId, r.binId])), [results]);
@@ -268,7 +273,7 @@ export function WarehouseMapPage() {
       <div className="grid gap-4 xl:grid-cols-5">
         <Card className="xl:col-span-3">
           <CardHeader className="flex-col sm:flex-row sm:items-center">
-            <CardTitle>{data?.zones.length ? `WH001 · ${t("nav.warehouseMap")}` : t("nav.warehouseMap")}</CardTitle>
+            <CardTitle>{warehouse ? `${warehouse.code} · ${warehouse.name}` : t("nav.warehouseMap")}</CardTitle>
             <Legend />
           </CardHeader>
           <CardContent>{isLoading || !data ? <Skeleton className="aspect-[100/62] w-full" /> : <ZoneMap zones={data.zones} selectedZone={zoneId} highlight={highlight} onSelect={(id) => select({ zone: id, rack: null })} />}</CardContent>

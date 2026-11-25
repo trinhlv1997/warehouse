@@ -4,6 +4,7 @@ import {
   ArrowDownToLine,
   ArrowLeftRight,
   ArrowUpFromLine,
+  BookOpen,
   BarChart3,
   Boxes,
   ChevronDown,
@@ -93,6 +94,7 @@ function useNavigation(): NavGroup[] {
         { to: "/reports", label: t("nav.reports"), icon: <BarChart3 />, permission: "report.view" },
         { to: "/users", label: t("nav.users"), icon: <UserCog />, permission: "user.manage" },
         { to: "/settings", label: t("nav.settings"), icon: <Settings />, permission: "dashboard.view" },
+        { to: "/guide", label: t("nav.guide"), icon: <BookOpen /> },
       ],
     },
   ];
@@ -204,7 +206,7 @@ export function AppLayout() {
 
   return (
     <div className="flex h-full">
-      <aside className="hidden w-64 shrink-0 lg:block">
+      <aside className="hidden w-64 shrink-0 lg:block print:hidden">
         <div className="fixed inset-y-0 w-64">
           <Sidebar />
         </div>
@@ -221,7 +223,7 @@ export function AppLayout() {
         </div>
       )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b bg-white/95 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 print:hidden items-center justify-between gap-3 border-b bg-white/95 px-4 backdrop-blur sm:px-6">
           <div className="flex items-center gap-3">
             <button className="rounded-md p-2 hover:bg-muted lg:hidden" onClick={() => setMobileOpen(true)} aria-label="menu">
               <Menu className="size-5" />
@@ -233,7 +235,7 @@ export function AppLayout() {
           </div>
           <UserMenu />
         </header>
-        <main className="flex-1 bg-background px-4 py-5 sm:px-6 lg:px-8">
+        <main className="flex-1 bg-background px-4 py-5 sm:px-6 lg:px-8 print:bg-white print:p-0">
           <Outlet />
         </main>
       </div>

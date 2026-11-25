@@ -248,3 +248,40 @@ describe("tenant isolation", () => {
     expect(await c.repos.inventory.getLot("tenant_other", "lot_SP001_1")).toBeNull();
   });
 });
+
+describe("warehouse code", () => {
+  it("renames the warehouse code and rewrites every location code atomically", async () => {
+    const before = await count("SELECT COUNT(*) AS n FROM warehouse_bins WHERE location_code LIKE 'WH001-%'");
+    expect(before).toBeGreaterThan(0);
+    const updated = await c.warehouse.updateWarehouse(manager, "wh_main", { code: "KMP01", name: "Kho Mỹ Phước", address: null });
+    expect(updated?.code).toBe("KMP01");
+    expect(await count("SELECT COUNT(*) AS n FROM warehouse_bins WHERE location_code LIKE 'WH001-%'")).toBe(0);
+    expect(await count("SELECT COUNT(*) AS n FROM warehouse_bins WHERE location_code LIKE 'KMP01-%'")).toBe(before);
+    const preview = await c.issues.preview(manager, [{ productId: "prd_SP001", quantity: 1 }]);
+    expect(preview.lines[0].allocations[0].locationCode).toMatch(/^KMP01-A-A\d{2}-L\d{2}-B\d{2}$/);
+    // saving again with the same code leaves locations untouched
+    await c.warehouse.updateWarehouse(manager, "wh_main", { code: "KMP01", name: "Kho Mỹ Phước 2", address: null });
+    expect(await count("SELECT COUNT(*) AS n FROM warehouse_bins WHERE location_code LIKE 'KMP01-%'")).toBe(before);
+  });
+});
+
+describe("zone placement on the map", () => {
+  const base = { warehouseId: "wh_main", zoneType: "GENERAL" as const, description: null, status: "ACTIVE" as const };
+
+  it("auto-places a new zone in free space when no position is given", async () => {
+    const zone = await c.warehouse.createZone(manager, { ...base, code: "S", name: "Khu VIP" });
+    expect({ x: zone.mapX, y: zone.mapY }).toEqual({ x: 2, y: 60 });
+  });
+
+  it("rejects an explicit position that overlaps another zone", async () => {
+    await expectAppError(c.warehouse.createZone(manager, { ...base, code: "S", name: "Khu VIP", mapX: 5, mapY: 1, mapWidth: 50, mapHeight: 20 }), "ZONE_OVERLAP");
+  });
+
+  it("moves an already-overlapping zone to free space when it is saved without coordinates", async () => {
+    const zone = await c.warehouse.createZone(manager, { ...base, code: "S", name: "Khu VIP" });
+    await db.run("UPDATE warehouse_zones SET map_x = 5, map_y = 1, map_width = 50 WHERE id = ?", [zone.id]);
+    const fixed = await c.warehouse.updateZone(manager, zone.id, { ...base, code: "S", name: "Khu VIP" });
+    const others = (await c.warehouse.listZones(manager)).filter((z) => z.id !== zone.id);
+    expect(others.some((o) => fixed.mapX < o.mapX + o.mapWidth && o.mapX < fixed.mapX + fixed.mapWidth && fixed.mapY < o.mapY + o.mapHeight && o.mapY < fixed.mapY + fixed.mapHeight)).toBe(false);
+  });
+});

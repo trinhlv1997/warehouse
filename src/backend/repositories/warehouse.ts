@@ -74,6 +74,9 @@ export interface ZoneInputData {
   mapHeight: number;
 }
 
+/** Zone input as received from the API: map position/size may be omitted (auto-placed). */
+export type ZoneInputRequest = Omit<ZoneInputData, "mapX" | "mapY" | "mapWidth" | "mapHeight"> & Partial<Pick<ZoneInputData, "mapX" | "mapY" | "mapWidth" | "mapHeight">>;
+
 export interface BinFilter extends PageRequest {
   search?: string;
   zoneId?: string;
@@ -87,7 +90,8 @@ export interface BinFilter extends PageRequest {
 export interface WarehouseRepository {
   listWarehouses(tenantId: string): Promise<WarehouseDto[]>;
   getDefaultWarehouse(tenantId: string): Promise<WarehouseDto | null>;
-  updateWarehouse(tenantId: string, id: string, name: string, address: string | null): Promise<void>;
+  /** Renaming the code rewrites every bin location code of the warehouse in the same atomic batch. */
+  updateWarehouse(tenantId: string, id: string, input: { code: string; name: string; address: string | null }): Promise<void>;
   listZones(tenantId: string): Promise<ZoneRow[]>;
   getZone(tenantId: string, id: string): Promise<ZoneRow | null>;
   createZone(tenantId: string, input: ZoneInputData): Promise<string>;
@@ -136,8 +140,22 @@ export class SqlWarehouseRepository implements WarehouseRepository {
     );
   }
 
-  async updateWarehouse(tenantId: string, id: string, name: string, address: string | null) {
-    await this.db.run(`UPDATE warehouses SET name = ?, address = ?, updated_at = ${NOW_SQL} WHERE id = ? AND tenant_id = ?`, [name, address, id, tenantId]);
+  async updateWarehouse(tenantId: string, id: string, input: { code: string; name: string; address: string | null }) {
+    await this.db.batch([
+      // bins first, while the old code is still readable from the warehouse row
+      {
+        sql: `UPDATE warehouse_bins
+                 SET location_code = ? || substr(location_code, length((SELECT code FROM warehouses WHERE id = ? AND tenant_id = ?)) + 1),
+                     updated_at = ${NOW_SQL}
+               WHERE warehouse_id = ? AND tenant_id = ?
+                 AND ? <> (SELECT code FROM warehouses WHERE id = ? AND tenant_id = ?)`,
+        params: [input.code, id, tenantId, id, tenantId, input.code, id, tenantId],
+      },
+      {
+        sql: `UPDATE warehouses SET code = ?, name = ?, address = ?, updated_at = ${NOW_SQL} WHERE id = ? AND tenant_id = ?`,
+        params: [input.code, input.name, input.address, id, tenantId],
+      },
+    ]);
   }
 
   private zoneSelect = `z.id, z.warehouse_id AS warehouseId, z.code, z.name, z.zone_type AS zoneType, z.description, z.status,

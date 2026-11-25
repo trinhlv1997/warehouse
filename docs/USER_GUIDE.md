@@ -64,4 +64,4 @@ Chọn loại báo cáo (tồn kho, theo sản phẩm/lô/vị trí, nhập, xu�
 ## Quản trị (Admin)
 
 - **Quản lý người dùng**: thêm tài khoản, gán vai trò, khóa tài khoản, đặt lại mật khẩu; tab **Nhật ký hệ thống** xem ai làm gì, khi nào.
-- **Cài đặt**: tên doanh nghiệp/kho, ngưỡng cảnh báo; **Khôi phục dữ liệu demo** để đưa hệ thống về dữ liệu mẫu sau buổi demo.
+- **Cài đặt**: tên doanh nghiệp, **mã kho** (tiền tố mọi mã vị trí, hiện ở tiêu đề Sơ đồ kho; đổi mã sẽ cập nhật toàn bộ mã vị trí sau khi xác nhận), tên và địa chỉ kho, ngưỡng cảnh báo; **Khôi phục dữ liệu demo** để đưa hệ thống về dữ liệu mẫu sau buổi demo.

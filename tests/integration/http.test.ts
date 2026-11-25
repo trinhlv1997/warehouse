@@ -94,3 +94,15 @@ describe("HTTP API security", () => {
     expect(Object.keys(doc.paths)).toContain("/api/stock-issues/fefo-preview");
   });
 });
+
+describe("warehouse code validation", () => {
+  it("rejects codes that would break location codes", async () => {
+    const { cookie, csrf } = await login("admin@demo.vn");
+    const headers = { cookie, "Content-Type": "application/json", "X-CSRF-Token": csrf };
+    const bad = await app.request("/api/warehouses/wh_main", { method: "PUT", headers, body: JSON.stringify({ code: "WH-01", name: "Kho" }) });
+    expect(bad.status).toBe(400);
+    const good = await app.request("/api/warehouses/wh_main", { method: "PUT", headers, body: JSON.stringify({ code: "wh002", name: "Kho" }) });
+    expect(good.status).toBe(200);
+    expect(((await good.json()) as { data: { code: string } }).data.code).toBe("WH002");
+  });
+});

@@ -3,7 +3,8 @@ import type { BinDetailDto, BinDto, LevelDto, RackDto, ZoneDto } from "../../sha
 import { businessDate } from "../domain/dates";
 import { AppError } from "../domain/errors";
 import type { Repositories } from "../repositories";
-import type { BinFilter, BinRow, ZoneInputData } from "../repositories/warehouse";
+import { DEFAULT_ZONE_SIZE, findFreeSlot, findOverlap } from "../../shared/mapLayout";
+import type { BinFilter, BinRow, ZoneInputData, ZoneInputRequest } from "../repositories/warehouse";
 import { toPositionDto, withCapacity, type Actor } from "./context";
 import { guarded } from "./tx";
 import type { SettingsService } from "./settings";
@@ -33,9 +34,12 @@ export class WarehouseService {
     return this.repos.warehouse.listWarehouses(actor.tenantId);
   }
 
-  async updateWarehouse(actor: Actor, id: string, name: string, address: string | null) {
-    await this.repos.warehouse.updateWarehouse(actor.tenantId, id, name, address);
-    await this.audit(actor, "warehouse.updated", "warehouse", id);
+  async updateWarehouse(actor: Actor, id: string, input: { code: string; name: string; address: string | null }) {
+    const current = (await this.repos.warehouse.listWarehouses(actor.tenantId)).find((w) => w.id === id);
+    if (!current) throw new AppError("NOT_FOUND", "Warehouse not found");
+    await guarded(() => this.repos.warehouse.updateWarehouse(actor.tenantId, id, input));
+    await this.audit(actor, "warehouse.updated", "warehouse", id, { from: { code: current.code, name: current.name }, to: { code: input.code, name: input.name } });
+    return (await this.repos.warehouse.listWarehouses(actor.tenantId)).find((w) => w.id === id);
   }
 
   async listZones(actor: Actor): Promise<ZoneDto[]> {
@@ -52,7 +56,30 @@ export class WarehouseService {
     };
   }
 
-  async createZone(actor: Actor, input: ZoneInputData) {
+  /**
+   * Resolves the zone's map rectangle: missing position => first free spot (aisles kept),
+   * explicit position => must not overlap another zone of the same warehouse.
+   */
+  private async placeZone(actor: Actor, input: ZoneInputRequest, zoneId?: string): Promise<ZoneInputData> {
+    const others = (await this.repos.warehouse.listZones(actor.tenantId)).filter((z) => z.id !== zoneId && z.warehouseId === input.warehouseId);
+    const current = zoneId ? await this.repos.warehouse.getZone(actor.tenantId, zoneId) : null;
+    const mapWidth = input.mapWidth ?? current?.mapWidth ?? DEFAULT_ZONE_SIZE.width;
+    const mapHeight = input.mapHeight ?? current?.mapHeight ?? DEFAULT_ZONE_SIZE.height;
+    if (input.mapX === undefined || input.mapY === undefined) {
+      const slot = current && input.mapX === undefined && input.mapY === undefined ? { mapX: current.mapX, mapY: current.mapY } : findFreeSlot(others, mapWidth, mapHeight);
+      const placed = { ...input, ...slot, mapWidth, mapHeight };
+      return findOverlap(placed, others) ? { ...placed, ...findFreeSlot(others, mapWidth, mapHeight) } : placed;
+    }
+    const rect = { ...input, mapX: input.mapX, mapY: input.mapY, mapWidth, mapHeight };
+    const clash = findOverlap(rect, others);
+    if (clash) {
+      throw new AppError("ZONE_OVERLAP", "Zone overlaps another zone on the map", { zoneCode: clash.code, zoneName: clash.name, suggestion: findFreeSlot(others, mapWidth, mapHeight) });
+    }
+    return rect;
+  }
+
+  async createZone(actor: Actor, request: ZoneInputRequest) {
+    const input = await this.placeZone(actor, request);
     const id = await guarded(() => this.repos.warehouse.createZone(actor.tenantId, input));
     await this.audit(actor, "zone.created", "warehouse_zone", id, { code: input.code });
     return this.getZone(actor, id);
@@ -64,8 +91,9 @@ export class WarehouseService {
     return withCapacity(zone, await this.near(actor));
   }
 
-  async updateZone(actor: Actor, id: string, input: ZoneInputData) {
+  async updateZone(actor: Actor, id: string, request: ZoneInputRequest) {
     await this.getZone(actor, id);
+    const input = await this.placeZone(actor, request, id);
     await guarded(() => this.repos.warehouse.updateZone(actor.tenantId, id, input));
     await this.audit(actor, "zone.updated", "warehouse_zone", id);
     return this.getZone(actor, id);

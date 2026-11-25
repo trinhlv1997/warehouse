@@ -12,8 +12,7 @@ export const warehouseRoutes = new Hono<AppEnv>()
   .get("/warehouses", view, async (c) => ok(c, await c.var.container.warehouse.listWarehouses(actorOf(c))))
   .put("/warehouses/:id", manage, async (c) => {
     const input = await parseBody(c, warehouseUpdateSchema);
-    await c.var.container.warehouse.updateWarehouse(actorOf(c), c.req.param("id"), input.name, input.address);
-    return ok(c, { success: true });
+    return ok(c, await c.var.container.warehouse.updateWarehouse(actorOf(c), c.req.param("id"), input));
   })
   .get("/warehouse-map", view, async (c) => ok(c, await c.var.container.warehouse.map(actorOf(c))))
 

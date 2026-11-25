@@ -7,7 +7,7 @@ import { Link } from "react-router";
 import type { z } from "zod";
 import { ACTIVE_STATUSES } from "@/shared/constants";
 import { rackCreateSchema } from "@/shared/schemas";
-import type { RackDto, ZoneDto } from "@/shared/types";
+import type { RackDto, WarehouseDto, ZoneDto } from "@/shared/types";
 import { ConfirmDialog, FilterBar, PageHeader } from "../../components/common";
 import { CapacityBadge, StatusBadge, capacityTone } from "../../components/StatusBadge";
 import { Button } from "../../components/ui/button";
@@ -41,6 +41,8 @@ function CreateRackDialog({ zones, open, onOpenChange }: { zones: ZoneDto[]; ope
   });
   const err = form.formState.errors;
   const zone = zones.find((z) => z.id === form.watch("zoneId"));
+  const { data: warehouses } = useApiQuery<WarehouseDto[]>(["warehouses"], "/api/warehouses");
+  const whCode = warehouses?.[0]?.code ?? "WH";
   const code = form.watch("code") || "A05";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,7 +73,7 @@ function CreateRackDialog({ zones, open, onOpenChange }: { zones: ZoneDto[]; ope
             <Field label={t("racks.binsPerLevel")} error={err.binsPerLevel?.message}>
               <Input type="number" {...form.register("binsPerLevel")} />
             </Field>
-            <Field label={t("racks.binCapacity")} error={err.binCapacity?.message} className="sm:col-span-2" hint={t("racks.generateHint", { example: `WH001-${zone?.code ?? "A"}-${code.toUpperCase()}-L01-B01` })}>
+            <Field label={t("racks.binCapacity")} error={err.binCapacity?.message} className="sm:col-span-2" hint={t("racks.generateHint", { example: `${whCode}-${zone?.code ?? "A"}-${code.toUpperCase()}-L01-B01` })}>
               <Input type="number" {...form.register("binCapacity")} />
             </Field>
           </DialogBody>

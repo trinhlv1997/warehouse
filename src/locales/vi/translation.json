@@ -29,7 +29,8 @@
     "slowMoving": "Hàng tồn lâu ngày",
     "reports": "Báo cáo",
     "users": "Quản lý người dùng",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "guide": "Hướng dẫn sử dụng"
   },
   "common": {
     "save": "Lưu",
@@ -203,7 +204,8 @@
     "INTERNAL_ERROR": "Đã xảy ra lỗi hệ thống. Vui lòng thử lại.",
     "network": "Không kết nối được máy chủ.",
     "pdf": "Không tạo được file PDF, vui lòng thử lại.",
-    "excel": "Không tạo được file Excel, vui lòng thử lại."
+    "excel": "Không tạo được file Excel, vui lòng thử lại.",
+    "ZONE_OVERLAP": "Khu vực bị đè lên khu khác trên sơ đồ kho. Hãy đổi vị trí hoặc bấm \"Tự động tìm chỗ trống\"."
   },
   "validation": {
     "required": "Trường này là bắt buộc",
@@ -217,7 +219,9 @@
     "EXPIRY_BEFORE_MANUFACTURING": "Hạn sử dụng phải sau ngày sản xuất",
     "SAME_BIN": "Vị trí đích phải khác vị trí nguồn",
     "SCOPE_REQUIRED": "Chọn ít nhất một khu vực hoặc kệ",
-    "passwordMin": "Mật khẩu tối thiểu 8 ký tự"
+    "passwordMin": "Mật khẩu tối thiểu 8 ký tự",
+    "WAREHOUSE_CODE": "Mã kho chỉ gồm chữ và số, 2–10 ký tự",
+    "MAP_OUT_OF_BOUNDS": "Khu vực vượt quá mép phải sơ đồ (X + Rộng ≤ 100)"
   },
   "auth": {
     "title": "Đăng nhập hệ thống",
@@ -297,7 +301,12 @@
     "mapWidth": "Rộng",
     "mapHeight": "Cao",
     "rackCount": "Số kệ",
-    "binCount": "Số ô"
+    "binCount": "Số ô",
+    "autoPlace": "Tự động tìm chỗ trống",
+    "preview": "Xem trước trên sơ đồ",
+    "overlapWith": "Đang đè lên {{zone}}",
+    "placementOk": "Vị trí hợp lệ, không đè khu khác",
+    "autoHint": "Để trống X/Y khi tạo mới: hệ thống tự đặt vào chỗ trống"
   },
   "racks": {
     "title": "Quản lý kệ",
@@ -585,7 +594,11 @@
     "demoText": "Khôi phục toàn bộ dữ liệu kho về bộ dữ liệu mẫu. Mọi thay đổi đã thực hiện sẽ bị xóa.",
     "resetDemo": "Khôi phục dữ liệu demo",
     "resetDone": "Đã khôi phục dữ liệu demo",
-    "preferences": "Tùy chọn cá nhân"
+    "preferences": "Tùy chọn cá nhân",
+    "warehouseCode": "Mã kho",
+    "warehouseCodeHint": "Chữ và số, 2–10 ký tự; là tiền tố của mọi mã vị trí, ví dụ {{example}}",
+    "codeChangeTitle": "Đổi mã kho?",
+    "codeChangeText": "Mã kho đổi từ {{from}} sang {{to}}: toàn bộ mã vị trí sẽ được cập nhật theo (ví dụ {{from}}-A-A01-L01-B01 → {{to}}-A-A01-L01-B01). Nhãn vị trí đã in hoặc file PDF/Excel đã xuất trước đó vẫn ghi mã cũ."
   },
   "notFound": {
     "title": "Không tìm thấy trang",
@@ -626,5 +639,15 @@
     "printedAt": "Xuất lúc {{time}} bởi {{user}} — WMS Pro",
     "page": "Trang {{current}}/{{total}}",
     "cancelled": "ĐÃ HỦY"
+  },
+  "guide": {
+    "title": "Hướng dẫn sử dụng",
+    "subtitle": "Cách dùng từng chức năng của WMS Pro, từ đăng nhập đến báo cáo",
+    "contents": "Mục lục",
+    "searchPlaceholder": "Tìm trong hướng dẫn...",
+    "noMatch": "Không có mục nào phù hợp",
+    "print": "In / Lưu PDF",
+    "jumpTo": "Chuyển đến mục...",
+    "vietnameseOnly": "Hướng dẫn sử dụng hiện chỉ có bản tiếng Việt."
   }
 }

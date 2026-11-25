@@ -38,6 +38,7 @@ const StocktakingDetailPage = lazy(() => import("./pages/operations/StocktakingD
 const ReportsPage = lazy(() => import("./pages/reports/ReportsPage"), "ReportsPage");
 const UsersPage = lazy(() => import("./pages/admin/UsersPage"), "UsersPage");
 const SettingsPage = lazy(() => import("./pages/admin/SettingsPage"), "SettingsPage");
+const GuidePage = lazy(() => import("./pages/guide/GuidePage"), "GuidePage");
 
 function FullScreenLoader() {
   return (
@@ -112,6 +113,14 @@ const router = createBrowserRouter([
           { path: "reports", element: g("report.view", <ReportsPage />) },
           { path: "users", element: g("user.manage", <UsersPage />) },
           { path: "settings", element: g("dashboard.view", <SettingsPage />) },
+          {
+            path: "guide",
+            element: (
+              <React.Suspense fallback={<FullScreenLoader />}>
+                <GuidePage />
+              </React.Suspense>
+            ),
+          },
           { path: "*", element: <NotFound /> },
         ],
       },

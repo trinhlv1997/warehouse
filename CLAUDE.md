@@ -36,5 +36,6 @@ Node >= 22.12 (on this machine at `~/.local/node/bin`).
 - Frontend: never hard-code visible text, add keys to both locale files. API errors are shown via `useErrorMessage` (`errors.<CODE>`). API base URL is `VITE_API_BASE_URL` (empty = same origin).
 - Schema changes: add a new file in `database/migrations/`, apply `--local` and `--remote`; keep integration tests passing (they execute the migrations).
 - When adding an endpoint, also register it in `src/backend/openapi.ts`.
+- In-app user guide (`/guide`, menu item under Cài đặt) renders `src/frontend/content/user-guide.vi.md` (exported from the "Hướng dẫn sử dụng WMS Pro" Claude Doc; images in `public/guide-assets/`). When a feature changes, update that markdown too; `tests/unit/guide.test.ts` checks the 15 chapters, anchors and image paths.
 
 Docs live in `docs/` (ARCHITECTURE, DATABASE, API, DEPLOYMENT, DOMAIN_MIGRATION, FREE_TIER_LIMITS, SECURITY, USER_GUIDE).
