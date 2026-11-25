@@ -1,21 +1,63 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Một Worker phục vụ cả API (/api/*) và SPA (Workers Static Assets).
   "name": "warehouse-management",
-  "main": ".open-next/worker.js",
+  "main": "src/backend/index.ts",
   "compatibility_date": "2026-09-01",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
-    "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/files/*"]
   },
   "observability": { "enabled": true },
+  "vars": {
+    "APP_ENV": "production",
+    "APP_BASE_URL": "",
+    "CORS_ALLOWED_ORIGINS": "",
+    "DATABASE_PROVIDER": "d1",
+    "STORAGE_PROVIDER": "r2",
+    "DEFAULT_TIMEZONE": "Asia/Ho_Chi_Minh",
+    "DEMO_MODE": "true",
+    "PASSWORD_HASH_ITERATIONS": "50000"
+  },
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "warehouse-management-db",
-      // Thay bằng id thật sau khi chạy: npx wrangler d1 create warehouse-management-db
+      "database_name": "wms-db",
+      // Thay bằng id thật: npx wrangler d1 create wms-db (xem docs/DEPLOYMENT.md)
       "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "migrations"
+      "migrations_dir": "database/migrations"
     }
-  ]
+  ],
+  "r2_buckets": [
+    {
+      "binding": "STORAGE",
+      // Tạo bằng: npx wrangler r2 bucket create wms-files
+      "bucket_name": "wms-files"
+    }
+  ],
+  "env": {
+    "staging": {
+      "name": "warehouse-management-staging",
+      "vars": {
+        "APP_ENV": "staging",
+        "APP_BASE_URL": "",
+        "CORS_ALLOWED_ORIGINS": "",
+        "DATABASE_PROVIDER": "d1",
+        "STORAGE_PROVIDER": "r2",
+        "DEFAULT_TIMEZONE": "Asia/Ho_Chi_Minh",
+        "DEMO_MODE": "true",
+        "PASSWORD_HASH_ITERATIONS": "50000"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "wms-db-staging",
+          "database_id": "00000000-0000-0000-0000-000000000001",
+          "migrations_dir": "database/migrations"
+        }
+      ],
+      "r2_buckets": [{ "binding": "STORAGE", "bucket_name": "wms-files-staging" }]
+    }
+  }
 }

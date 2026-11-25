@@ -1,0 +1,3 @@
+# Secrets cho Worker khi chạy local (copy thành .dev.vars). KHÔNG commit .dev.vars.
+SESSION_SECRET=dev-only-change-me-use-openssl-rand-hex-32
+APP_ENV=development
